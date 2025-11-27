@@ -3,6 +3,8 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from genres.models import Genre
 from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+from rest_framework import generics
 
 @csrf_exempt
 def genre_create_list_view(request):
@@ -16,15 +18,26 @@ def genre_create_list_view(request):
         new_genre.save()
         return JsonResponse({'id': new_genre.id, 'name': new_genre.name}, status=201)
 
+
+
 @csrf_exempt
 def genre_detail_view(request, pk):
     genre = get_object_or_404(Genre, pk=pk)
 
-    if request.method == 'GET':        
+    if request.method == 'GET':
         data = {'id': genre.id, 'name': genre.name}
         return JsonResponse(data)
+    
     elif request.method == 'PUT':
         data = json.loads(request.body.decode('utf-8'))
         genre.name = data['name']
         genre.save()
-        return JsonResponse({'id': genre.id, 'name': genre.name})
+        data = {'id': genre.id, 'name': genre.name}
+        return JsonResponse(data)
+    
+    elif request.method == 'DELETE':
+        genre.delete()
+        return HttpResponse(status=204)
+    
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
